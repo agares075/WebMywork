@@ -13,7 +13,7 @@ export async function proxy(request: NextRequest) {
   return NextResponse.redirect(new URL("/login", request.url));
 }
 
-// Login, OAuth/CSRF endpoints and static Next assets must remain public.
+// Login, privacy, OAuth/CSRF endpoints and static Next assets remain public.
 export const config = {
-  matcher: ["/((?!api/auth(?:/|$)|login(?:/|$)|_next(?:/|$)|favicon.ico$).*)"]
+  matcher: ["/((?!api/auth(?:/|$)|login(?:/|$)|privacy(?:/|$)|_next(?:/|$)|favicon.ico$).*)"]
 };
