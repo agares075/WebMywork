@@ -1,0 +1,54 @@
+.money-income, .money-income input { color: #176448; }
+.money-expense, .money-expense input { color: #af3434; }
+.delete-text { color: #a73737; }
+.text-link { color: var(--green); text-decoration: underline; text-underline-offset: 3px; }
+.job-form-page { width: 100%; max-width: 1100px; margin: 0 auto; padding: 24px 16px 0; }
+.form-intro { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 8px; }
+.form-intro h1 { font-size: 1.875rem; margin-top: 4px; }
+.draft-status { color: var(--muted); min-height: 26px; font-size: .8125rem; margin-bottom: 20px; }
+.form-disabled-group { border: 0; padding: 0; margin: 0; min-width: 0; }
+.job-form-columns { display: grid; gap: 20px; }
+.job-form-columns > div { min-width: 0; }
+.form-section { margin: 0 0 22px; padding: 20px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); min-width: 0; }
+.form-section legend { padding: 0 8px; font-weight: 600; font-size: 1.0625rem; }
+.section-fields { display: grid; gap: 18px; }
+.form-field { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.form-field label { font-size: .9375rem; color: var(--text); }
+.form-field input, .form-field textarea, .form-field select { width: 100%; min-width: 0; min-height: 52px; padding: 12px; border: 1px solid #becfc3; background: var(--surface); border-radius: 10px; font: inherit; font-size: 16px; line-height: 1.5; }
+.form-field input:not(.money-income input):not(.money-expense input), .form-field textarea, .form-field select { color: var(--text); }
+.form-field input[type="date"], .form-field input[type="time"], .form-field input[type="datetime-local"] { -webkit-appearance: none; appearance: none; }
+.form-field textarea { resize: vertical; min-height: 104px; }
+.form-field select { appearance: none; padding-right: 36px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2318372f' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+.field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.field-help { font-size: .8125rem; color: var(--muted); margin-top: -8px; }
+.time-with-now { display: flex; align-items: flex-end; gap: 8px; }
+.time-with-now .form-field { flex: 1; min-width: 0; }
+.time-with-now .button { min-height: 52px; font-size: .875rem; padding: 10px; }
+.time-with-now input { padding: 12px 8px; font-size: 16px; }
+.calculated-value { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-top: 12px; border-top: 1px solid var(--line); font-size: .9375rem; }
+.calculated-value strong { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.expense-heading { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+.expense-heading h3 { margin: 0; font-size: .9375rem; font-weight: 600; }
+.expense-item { border: 1px solid var(--line); border-radius: 12px; padding: 14px; background: #fffafa; display: grid; gap: 12px; }
+.expense-amount { display: flex; align-items: flex-end; gap: 8px; }
+.expense-amount .form-field { flex: 1; }
+.expense-amount .button { padding: 10px 6px; font-size: .8125rem; }
+.expected-payment { display: grid; gap: 6px; padding: 16px; background: var(--green-soft); border-radius: 12px; font-size: .875rem; }
+.expected-payment strong { font-size: 1rem; }
+.checkbox-field { display: flex; align-items: flex-start; gap: 12px; font-size: .9375rem; cursor: pointer; padding: 8px 0; min-height: 48px; }
+.checkbox-field input { accent-color: var(--green); width: 22px; height: 22px; flex-shrink: 0; margin-top: 2px; }
+.shoes-field { border-left: 3px solid var(--line); padding-left: 14px; }
+.form-save-bar { position: sticky; z-index: 15; bottom: 0; margin: 0 -16px; padding: 14px 16px calc(14px + env(safe-area-inset-bottom)); background: var(--surface); border-top: 1px solid var(--line); display: flex; gap: 12px; }
+.form-save-bar > .button { flex: 1; }
+.confirm-dialog { width: min(100% - 32px, 440px); border: 1px solid var(--line); border-radius: 20px; padding: 24px; color: var(--text); background: var(--surface); box-shadow: 0 20px 80px #0003; margin: auto; }
+.confirm-dialog::backdrop { background: #10281f88; backdrop-filter: blur(2px); }
+.confirm-dialog h2 { font-size: 1.375rem; }
+.confirm-dialog p { color: var(--muted); margin: 12px 0 24px; font-size: .9375rem; overflow-wrap: anywhere; }
+.dialog-actions { display: flex; gap: 10px; justify-content: flex-end; }
+.button-danger { color: #fff; background: #a73737; }
+@media (min-width: 700px) {
+ .job-form-page { padding: 34px 28px 0; }
+ .job-form-columns { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+ .form-save-bar { margin: 0 -28px; padding: 16px 28px; justify-content: flex-end; }
+ .form-save-bar > .button { flex: 0 1 auto; min-width: 170px; }
+}

@@ -1,0 +1,53 @@
+.work-nav a { min-width: 0; flex: 1; }
+.feature-modal { width: min(100% - 28px, 490px); max-height: calc(100dvh - 32px); overflow-y: auto; margin: auto; border: 1px solid var(--line); border-radius: 20px; padding: 22px; color: var(--text); background: var(--surface); box-shadow: 0 20px 80px #0003; }
+.feature-modal::backdrop { background: #10281f88; backdrop-filter: blur(2px); }
+.modal-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+.modal-heading h2 { font-size: 1.25rem; overflow-wrap: anywhere; margin-top: 8px; }
+.modal-heading > .button { min-width: 44px; min-height: 44px; padding: 0; font-size: 1.75rem; flex-shrink: 0; }
+.contact-editor-fields { display: grid; gap: 16px; }
+.contact-editor-actions { display: flex; gap: 10px; margin-top: 22px; }
+.contact-editor-actions .button { flex: 1; padding: 12px 10px; }
+.contacts-main .calendar-page-title { align-items: flex-end; }
+.contacts-main .calendar-page-title > div { min-width: 0; }
+.contacts-main .calendar-page-title .eyebrow { letter-spacing: 0; font-weight: 400; font-size: .875rem; }
+.contacts-main .calendar-page-title > .button { white-space: nowrap; }
+.contacts-search { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+.contacts-search .form-field { flex: 1 1 220px; }
+.contacts-search > .button { min-height: 52px; }
+.search-result-count { color: var(--muted); font-size: .875rem; margin: 18px 0; }
+.contacts-grid { display: grid; gap: 16px; }
+.contact-card { display: flex; gap: 14px; padding: 20px; border-radius: 18px; border: 1px solid var(--line); background: var(--surface); }
+.contact-avatar { display: grid; place-items: center; flex-shrink: 0; width: 44px; height: 44px; border-radius: 14px; background: var(--green-soft); color: var(--green); font-size: 1.125rem; font-weight: 600; }
+.contact-card-content { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.contact-card h2 { font-size: 1.125rem; }
+.contact-card-content > p { color: var(--muted); font-size: .9375rem; margin-top: 4px; }
+.contact-phone { display: inline-flex; align-items: center; min-height: 44px; font-size: .9375rem; font-variant-numeric: tabular-nums; }
+.contact-history { display: grid; gap: 8px; font-size: .875rem; margin: 12px 0 18px; padding-top: 12px; border-top: 1px solid var(--line); }
+.contact-history > div { display: flex; justify-content: space-between; gap: 12px; }
+.contact-history dt { color: var(--muted); }
+.contact-history dd { margin: 0; text-align: right; }
+.contact-card-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.contact-card-actions .button { font-size: .875rem; min-height: 44px; padding: 8px 12px; }
+.team-selected, .team-quick { display: flex; flex-wrap: wrap; gap: 8px; }
+.team-chip { display: inline-flex; gap: 10px; align-items: center; background: var(--green-soft); color: var(--green); min-height: 44px; max-width: 100%; overflow-wrap: anywhere; border: 1px solid #bdd3c4; border-radius: 22px; padding: 8px 14px; font-size: .9375rem; }
+.team-chip span { font-size: 1.25rem; }
+.missing-contact { color: var(--error); border-color: #d6adad; background: var(--error-bg); }
+.picker-label { font-size: .875rem; color: var(--muted); margin-bottom: 10px; }
+.team-quick .button { min-height: 44px; font-size: .875rem; padding: 8px 12px; }
+.team-options { display: grid; gap: 0; max-height: 310px; overflow-y: auto; overscroll-behavior: contain; border: 1px solid var(--line); border-radius: 12px; }
+.team-option { display: flex; gap: 12px; align-items: flex-start; padding: 13px; border-bottom: 1px solid var(--line); cursor: pointer; min-height: 70px; }
+.team-option:last-child { border-bottom: none; }
+.team-option:has(input:checked) { background: var(--green-soft); }
+.team-option input { width: 21px; height: 21px; accent-color: var(--green); flex-shrink: 0; margin-top: 4px; }
+.team-option > span { display: grid; min-width: 0; overflow-wrap: anywhere; }
+.team-option strong { font-size: .9375rem; font-weight: 600; }
+.team-option span span { font-size: .875rem; color: var(--muted); }
+.team-option small { font-size: .8125rem; color: var(--muted); margin-top: 2px; }
+.picker-empty { text-align: center; color: var(--muted); padding: 24px 10px; font-size: .875rem; }
+.picker-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.picker-actions .button { font-size: .875rem; padding: 10px 12px; }
+.inline-contact { background: var(--bg); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+.inline-contact h3 { font-size: 1rem; margin: 0 0 16px; font-weight: 600; }
+@media (min-width: 700px) { .contacts-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1100px) { .work-nav a { flex: 0 0 auto; } }
+@media (min-width: 1500px) { .contacts-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
