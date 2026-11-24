@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { signIn, signOut } from "next-auth/react";
+import { useErrorToast } from "@/components/ui/app-runtime";
 import { GoogleIcon, Icon } from "@/components/ui/icon";
 import { t } from "@/lib/i18n";
 
@@ -11,6 +12,7 @@ export function AuthButton({ action, disabled = false, reconnect = false }: Prop
   const [pending, setPending] = useState(false);
   const [failed, setFailed] = useState(false);
   const login = action === "signIn";
+  useErrorToast(failed ? t.login.failed : "");
   async function handleClick() {
     setPending(true);
     setFailed(false);

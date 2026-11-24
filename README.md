@@ -1,152 +1,146 @@
-# Daily Work Log setup
+# Daily Work Log
 
-Next.js App Router, TypeScript, Tailwind CSS, Google OAuth, and Google Sheets. UI text is Thai; shared locale settings use `th-TH`, `THB`, and `Asia/Bangkok`.
+A private, mobile-first Thai website for freelance work, expenses, payments, teammates, and withholding certificates. Next.js App Router + TypeScript + Tailwind; Google Sheets stores records, Calendar stores job events, and Drive stores private certificates. Currency is THB and all work/payment dates use Asia/Bangkok.
 
-Phases 1–4 provide restricted Google login, Sheets storage, jobs/calendar, contacts, private Drive certificates, payment tracking, and dashboard reports with CSV export. Offline sync and PWA installation remain in Phase 5.
+This is a normal browser website. It has no service worker, installable manifest, or Add to Home Screen setup.
 
-## 1. Install
+## Requirements and local run
 
-Use Node.js 22 or newer (Node.js 24 LTS recommended).
+Use Node.js 22 or newer; Node.js 24 is recommended.
 
 ```sh
 npm ci
 ```
 
-## 2. Create a Google Cloud project
+Copy `.env.example` to `.env.local`:
 
-1. Open [Google Cloud Console](https://console.cloud.google.com/) and create or select a project.
-2. In **APIs & Services → Library**, enable **Google Sheets API**, **Google Calendar API**, and **Google Drive API**.
-3. Open **Google Auth Platform** (or **APIs & Services → OAuth consent screen**). Set the app name to **Daily Work Log** and provide your support/contact email.
-4. Choose **External** audience for a personal Gmail account. While the app is in **Testing**, add your own email as a test user. For a Workspace-only project, Internal is also possible if available to your organization.
-5. In **Data Access**, add `openid`, `email`, `profile`, `https://www.googleapis.com/auth/spreadsheets`, `https://www.googleapis.com/auth/calendar.events`, and `https://www.googleapis.com/auth/drive.file`.
-6. In **Clients**, create an OAuth client with application type **Web application**.
-7. Add the authorized JavaScript origin `http://localhost:3000` and this exact authorized redirect URI:
+```powershell
+Copy-Item .env.example .env.local
+```
 
-   ```text
-   http://localhost:3000/api/auth/callback/google
-   ```
-
-8. Copy the client ID and client secret. Keep both out of source control.
-
-See Google's [web-server OAuth setup guide](https://developers.google.com/identity/protocols/oauth2/web-server) and the [NextAuth Google provider guide](https://next-auth.js.org/providers/google). The server requests offline access and consent so Google can issue a refresh token. Google may expire refresh tokens for external apps left in Testing; reconnect when prompted. Review Google's [token expiration rules](https://developers.google.com/identity/protocols/oauth2#expiration) before long-term use.
-
-## 3. Prepare one spreadsheet
-
-1. Sign in as the Google account you will allow, then create a **blank** Google spreadsheet named Daily Work Log. An existing spreadsheet is also supported if the reserved tab names below are unused or have the exact expected headers.
-2. From `https://docs.google.com/spreadsheets/d/SPREADSHEET_ID/edit`, copy only `SPREADSHEET_ID`.
-3. The allowed account must have editor access. No service account or spreadsheet public sharing is needed.
-
-On the first authenticated visit, the app creates `Jobs`, `Expenses`, `Contacts`, `Files`, and `Summary`, with header rows and frozen first rows. It leaves any default/unrelated tabs in place. Repeated initialization does not add duplicate tabs or clear data. Summary formulas are installed automatically in Phase 4 and recalculate when job/payment/expense data changes.
-
-Reserved headers, in exact column order:
-
-- **Jobs:** `id, client, work_date, start_time, end_time, details, location, check_in, check_out, total_hours, income, outfit, shoes, credit_days, expected_payment_date, comment, payment_status, paid_amount, paid_date, team_member_ids, calendar_event_id, payment_reminder_event_id, created_at, updated_at, payment_reminder_enabled, calendar_sync_status`
-- **Expenses:** `id, job_id, label, amount, created_at, updated_at`
-- **Contacts:** `id, phone, real_name, nickname, created_at, updated_at`
-- **Files:** `id, job_id, drive_file_id, name, mime_type, url, created_at`
-- **Summary:** `month, income, expenses, net_profit, unpaid_total, client, job_count`
-
-If a reserved tab already contains conflicting headers, initialization stops before writing. Use a blank spreadsheet or manually align its headers after reviewing your data. The column definitions live in `src/lib/sheets/schema.ts`; job and expense rows use stable UUIDs. Phase 2 safely appends its two sync/reminder headers to the original 24-column Jobs header without moving existing rows.
-
-## 4. Configure and run locally
-
-Copy `.env.example` to `.env.local` (`Copy-Item .env.example .env.local` in PowerShell, or `cp .env.example .env.local` on macOS/Linux).
-
-Generate a secret:
+On macOS/Linux, use `cp .env.example .env.local` instead. Generate a secret:
 
 ```sh
 node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 ```
 
-Fill in all six values:
+Fill in the six required values, following the Google setup below:
 
 ```dotenv
 NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=PASTE_GENERATED_SECRET_HERE
+NEXTAUTH_SECRET=YOUR_GENERATED_SECRET
 GOOGLE_CLIENT_ID=YOUR_CLIENT_ID.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=YOUR_CLIENT_SECRET
-ALLOWED_EMAIL=your-own-google-email@gmail.com
+ALLOWED_EMAIL=your-own-google-account@gmail.com
 GOOGLE_SPREADSHEET_ID=YOUR_SPREADSHEET_ID
+# Optional, use with a separate test spreadsheet:
+ENABLE_DEMO_SEED=false
 ```
+
+`NEXTAUTH_SECRET` must be at least 32 characters. Use only the spreadsheet ID, not its full URL. Keep `.env.local` private. No `NEXT_PUBLIC_` secrets or service-account key is needed.
 
 ```sh
 npm run dev
 ```
 
-Open [localhost:3000](http://localhost:3000). Sign in with the exact `ALLOWED_EMAIL` account and grant Sheets access. The calendar home initializes the spreadsheet automatically. Open **การเชื่อมต่อ** to inspect the prepared tabs, open Google Sheets, retry the connection, or reconnect Google. Restart the dev server after editing environment variables.
+Open [localhost:3000](http://localhost:3000), then sign in with the exact allowed Google account. Restart the server after environment changes. Missing/invalid configuration is listed on the login screen without exposing secret values.
 
-Without valid configuration, the login screen lists the missing/invalid setting names, disables sign-in, and protected routes remain inaccessible.
+## Google Cloud setup
 
-## 5. Check and build
+1. Open [Google Cloud Console](https://console.cloud.google.com/), then create/select one project.
+2. Under **APIs & Services → Library**, enable **Google Sheets API**, **Google Calendar API**, and **Google Drive API**.
+3. Open **Google Auth Platform** / **OAuth consent screen**. Set the app name and support/contact email. Use an External audience for personal Gmail; while in Testing, add your allowed account as a test user. Internal audience is available for eligible Workspace organizations.
+4. In **Data Access**, request these scopes:
+   - `openid`
+   - `email`
+   - `profile`
+   - `https://www.googleapis.com/auth/spreadsheets`
+   - `https://www.googleapis.com/auth/calendar.events`
+   - `https://www.googleapis.com/auth/drive.file`
+5. Create an OAuth client with application type **Web application**. Add authorized JavaScript origin `http://localhost:3000` and this exact authorized redirect URI:
 
-Run one combined lint, type-check, and production-build pass:
+   ```text
+   http://localhost:3000/api/auth/callback/google
+   ```
+
+6. Copy the client ID and secret into `.env.local`.
+7. As the allowed account, create a blank Google spreadsheet. From `https://docs.google.com/spreadsheets/d/SPREADSHEET_ID/edit`, copy its ID into `GOOGLE_SPREADSHEET_ID`. The account must have editor access; keep the spreadsheet private.
+8. Sign in and grant all requested permissions. For an existing connection that lacks Calendar/Drive permissions, use **การเชื่อมต่อ → เชื่อมต่อ Google ใหม่**.
+
+Google Testing-mode refresh tokens can expire; reconnect when prompted. See [Google web-server OAuth](https://developers.google.com/identity/protocols/oauth2/web-server), [token expiration](https://developers.google.com/identity/protocols/oauth2#expiration), and [Drive per-file scopes](https://developers.google.com/workspace/drive/api/guides/api-specific-auth).
+
+## Google data initialization
+
+The first authenticated visit creates missing tabs and exact header rows: **Jobs**, **Expenses**, **Contacts**, **Files**, **Summary**. Existing unrelated tabs remain. Stable UUIDs link rows. Schema definitions are in `src/lib/sheets/schema.ts`; conflicting existing headers stop initialization before overwriting data. Older 24-column Jobs and 5-column Summary headers receive append-only migrations.
+
+Summary columns A:E contain monthly income, expenses, net profit, and unpaid totals; F:G contain job counts by client. Formula anchors A2:G2 spill down the columns, so keep manual notes outside A:G. Move existing manual content before initialization; cells below an anchor can block a formula spill. Summary uses all records independently of dashboard filters and the spreadsheet timezone is set to Asia/Bangkok.
+
+Job events use your **primary** Google Calendar. End time at/before start means the next day; check-in/out include explicit dates. Optional payment reminders are all-day events. App edits update Calendar; external Calendar edits are not imported into Sheets. A failed Calendar operation leaves a retryable pending status.
+
+The first certificate upload creates a private **Daily Work Log – ใบทวิ 50** folder in My Drive. Reuse the same spreadsheet ID and OAuth client to find that folder again. Files rows store the stable record ID, job ID, Drive file ID, name, MIME type, private URL, and creation time. Replacing preserves the Drive link; deleting moves the file to Trash and removes its row. Job deletion also cleans up its certificates.
+
+## Offline recovery and sync
+
+- Keep the page open if the connection drops. Job, contact, and payment drafts are saved locally. Clicking Save while offline queues the operation; incomplete forms are retained as drafts until you save them.
+- Drafts and the ordered sync queue use account-scoped **local storage**. Certificate bytes and unsaved file selections use **IndexedDB**, which avoids local-storage file-size limits. OAuth credentials are never stored in either location.
+- Saved job/payment/contact changes, deletions, Calendar retries, and certificate changes replay in order when the website is visible and online. The page checks on reconnect/focus and periodically while open. Closing the browser pauses replay; reopening the site online resumes it. First-time loading and navigation to uncached pages require a connection.
+- The connection banner shows pending operations. Successful requests are removed only after a server response. Stable record IDs and Drive upload markers support retries. Locally chained edits advance their server versions together. A stale version is refreshed only when the original edited fields still match the server; actual conflicts or expired permissions remain blocked for review.
+- For a blocked request, inspect the error and latest record, reconnect Google if necessary, then use **ลองส่งอีกครั้ง**. Keep draft information before explicitly clearing pending operations. Clearing browser site data or using a storage-restricted/private session can remove local work; storage failures show an error and do not claim a successful queued save.
+
+There is no background worker, offline page installation, or automatic submission of unfinished drafts.
+
+## Certificates and image compression
+
+Select multiple PDFs/images or use the phone camera. Images are resized in the browser to a maximum 2200-pixel long edge and compressed toward 1 MB as JPEG when needed, retaining orientation. Small suitable images are kept as-is. File processing completes before uploads or local persistence. See [canvas encoding](https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toBlob).
+
+Uploads remain limited to **4 MB per file and 20 files per job**, sent one at a time to stay within default [Vercel request limits](https://vercel.com/docs/functions/limitations). PDFs are preserved and must already be under the limit. HEIC/HEIF conversion depends on browser decoding support: unsupported files under 4 MB can upload as originals; larger unsupported files need JPEG/PNG conversion on the phone first. Original image inputs are limited to 32 MB for mobile memory use.
+
+PDF/image previews require your authenticated app session. Phone PDF/HEIC viewers can use **เปิดไฟล์ต้นฉบับ** / **เปิดใน Google Drive** as a fallback. No public Drive permission is created. Server validation checks file signatures, size, ownership links, and supported MIME types.
+
+## Display, payments, and reports
+
+Choose **การเชื่อมต่อ → รูปแบบการแสดงผล** for System/Light/Dark mode. Theme preference is retained locally, with accessible input/focus colors, reduced-motion support, loading skeletons, and dismissible error toasts.
+
+Payment statuses, paid amount, and paid date can be edited from job cards and saved job forms. Positive receipts require a paid date; Paid fills the full income and today's date. Unpaid jobs become Overdue after their expected Bangkok payment date; Paid/Cancelled jobs are exempt. Automatic overdue changes persist during authenticated reads, and visible pages revalidate every 30 seconds when online. No scheduled server task is installed.
+
+The dashboard defaults to this work month. Month/client/payment-status/outfit filters affect totals, unpaid lists, and CSV. Choose **ทุกเดือน** to include older unpaid jobs. The six-month chart ends at the selected month. Income is the recorded job amount; receipts are tracked separately. Cancelled jobs contribute no income/unpaid balance, while their expenses remain. Pending deletions are excluded. Currency arithmetic uses integer cents.
+
+CSV includes job fields, expense items/totals, reporting income, net, and unpaid amounts. UTF-8 BOM supports Thai text in Excel; quoted values preserve multiline text and formula-leading free text is neutralized. **เปิด Google Sheets** opens the private spreadsheet directly.
+
+## Optional demo data
+
+Use a separate blank test spreadsheet, set `ENABLE_DEMO_SEED=true`, and restart/redeploy. In **การเชื่อมต่อ → ข้อมูลตัวอย่าง**, confirm adding 1 teammate and 3 sample jobs. Stable sample IDs prevent duplicates and existing sample rows are preserved on repeat runs. Names have a `[ตัวอย่าง]` prefix. Sample rows exercise expenses, partial/paid payments, and the monthly chart.
+
+Seeding writes Sheets only; it does not create Calendar events or Drive files. Sample jobs have a pending Calendar status and can be synced manually. Delete samples with normal job/contact controls. Set the flag back to `false` to hide/disable seeding. The seed endpoint still requires the allowed Google session and same-origin POST.
+
+## Final checks and production run
 
 ```sh
 npm run check
 ```
 
-After building, run `npm start` to test the production server locally with the same localhost configuration. Deployed URLs must use HTTPS; plain HTTP is accepted only for localhost or 127.0.0.1. Google end-to-end login and first-run initialization require real credentials and cannot be verified by a credential-free build.
+This runs lint, TypeScript route generation/type-check, and the production build once. The existing two critical payment-date/totals tests remain available with `npm test`. After building, use `npm start` for a local production server. HTTP is accepted only for localhost/127.0.0.1; deployed URLs use HTTPS.
 
-## 6. Deploy to Vercel
+Phone camera behavior, offline/reconnect replay, browser image compression, and live Sheets/Calendar/Drive changes need a signed-in browser/device check. The build does not exercise a real Google transaction.
 
-1. Push the project to your own Git repository, then import it in [Vercel](https://vercel.com/new) with the **Next.js** framework preset and Node.js 24.
-2. In **Project Settings → Environment Variables**, add all six values from `.env.local` to the Production environment. Keep the Google secret and NextAuth secret private; do not use a `NEXT_PUBLIC_` prefix.
-3. Set `NEXTAUTH_URL` to the exact stable HTTPS production origin, for example `https://daily-work-log.vercel.app`. Reuse the spreadsheet ID and allowed email. Use a strong production secret.
-4. In your Google OAuth client, add that HTTPS origin and its exact redirect URI:
+## Deploy to Vercel
+
+1. Push the project to your Git repository and import it in [Vercel](https://vercel.com/new).
+2. Choose **Next.js**, project root `./`, Node.js **24**, build command `npm run build`, and the default output directory.
+3. Add all six required environment variables to Production in **Settings → Environment Variables**. Add the optional seed flag only for a test deployment. Never use `NEXT_PUBLIC_` for secrets.
+4. Set `NEXTAUTH_URL` to your stable HTTPS production origin, e.g. `https://daily-work-log.vercel.app`.
+5. In the Google OAuth client, add that origin and its exact production redirect URI:
 
    ```text
    https://daily-work-log.vercel.app/api/auth/callback/google
    ```
 
-5. Deploy (or redeploy after changing environment variables). Sign in and confirm all five tabs are reported as ready. Use the stable domain for OAuth; preview domains need their own matching URL, environment settings, and registered redirect URI.
+6. Deploy, then sign in on that stable domain and verify the connection, a job save, a payment change, and a certificate upload. Redeploy after environment changes. Preview domains need their own matching URL/settings and registered redirect URI.
 
-No Vercel database, service account, or local writable server filesystem is required. Follow Vercel's [environment variable setup](https://vercel.com/docs/environment-variables).
+Vercel supplies the Next.js server runtime. No Vercel database or writable server filesystem is required. See [Next.js on Vercel](https://vercel.com/docs/frameworks/full-stack/nextjs) and [environment variables](https://vercel.com/docs/environment-variables).
 
-## Access and credential handling
+## Access and project structure
 
-Only a Google-verified email exactly matching `ALLOWED_EMAIL` can sign in. The request proxy checks sessions; protected pages and Sheets endpoints independently recheck the allowlist. Login/OAuth/CSRF endpoints and static assets remain public by necessity. The initialization POST endpoint also verifies its request origin.
+Only the verified Google email matching `ALLOWED_EMAIL` is allowed. Protected routes/APIs recheck the session; mutations check request origin and server schemas. OAuth and Google API calls run server-side. NextAuth stores credentials in an encrypted HttpOnly session cookie; browser JavaScript/session JSON/React props do not receive raw OAuth tokens. Changing the auth secret invalidates sessions.
 
-OAuth exchanges and Sheets API calls run on the server. NextAuth stores Google credentials in its encrypted, HttpOnly session cookie (Secure over HTTPS); browser JavaScript, session JSON, local storage, and React props never receive raw access or refresh tokens. Secrets are imported only in server-only modules. Zod validates environment configuration and Google identity claims. NextAuth handles OAuth state, PKCE, and sign-in/sign-out CSRF checks. Changing the allowlist revokes access on subsequent requests; changing `NEXTAUTH_SECRET` invalidates existing sessions.
-
-Phases 1–3 request identity, Sheets, Calendar event, and per-file Drive scopes. Job/contact/payment inputs and uploaded content are validated on the server. Payment updates and CSV export use the same protected account and API checks.
-
-## Phase 2 Calendar setup and usage
-
-1. Existing Phase 1 users: enable Google Calendar API and add the `calendar.events` scope above, then open **การเชื่อมต่อ → เชื่อมต่อ Google ใหม่** (or sign out and in again). Grant Calendar access even if Sheets was already connected.
-2. The app writes to your Google account's **primary** calendar. Job date/start/end are interpreted in **Asia/Bangkok**. An end time at or before the start time means the next day. Check-in/out include an explicit date so overnight work is measured accurately.
-3. Select a date in the month or week view, then tap **เพิ่มงาน**. The list view shows the selected month's jobs. Client suggestions come from existing jobs. The sectioned form saves drafts locally in this browser, separately per allowed account and per edited job. Drafts are not offline submission queues; save requires a connection.
-4. Income and expense amounts use THB with cent-accurate totals. Expected payment date is work date plus credit days. Enable the checkbox to create an all-day expected-payment event; disabling it removes that reminder. These are schedule countdowns, not payment-status reports.
-5. A save writes the job and its expense rows together in one atomic Sheets batch. Calendar sync follows. If Calendar is unavailable, the saved job is marked pending and offers **ลองซิงก์อีกครั้ง**. Event IDs are retained for retrying without duplicate events. A pending delete remains visible until its Calendar events and Sheets rows have been removed successfully.
-6. Edit/delete use the last-read job version to detect stale edits. Sheets is designed here for personal use; avoid simultaneous edits or manual row rearrangement while a save is in progress. Calendar edits made outside the app are not imported into Sheets; the next app edit reapplies the job's event fields.
-7. Run `npm test` once for the two minimal payment-date and totals tests, then `npm run check` once for lint, type-check, and build. Live Google integration requires configured credentials and consent; never commit `.env.local`.
-
-Google's [Calendar event API reference](https://developers.google.com/workspace/calendar/api/v3/reference/events/insert) documents the timed/all-day event formats used by this integration.
-
-## Phase 3 contacts and certificate setup
-
-1. Enable **Google Drive API** in the same Cloud project and add `https://www.googleapis.com/auth/drive.file` to the consent screen. Open **การเชื่อมต่อ → เชื่อมต่อ Google ใหม่** and grant Drive access. No new environment variables or public sharing are required.
-2. The first upload automatically creates a private **Daily Work Log – ใบทวิ 50** folder in your My Drive. The app finds its folder using the spreadsheet ID in Drive app properties. Keep the same OAuth client and spreadsheet ID to reuse it. The app requests per-file access, not access to every file in Drive.
-3. Open **ผู้ร่วมงาน** to add, edit, delete, or instantly search names, nicknames, and phone numbers. Phone numbers are stored as text to preserve leading zeros. History shows the number and latest work date of linked jobs, excluding jobs pending deletion. Deleting a contact also detaches their ID from linked jobs in one Sheets batch; review the confirmation first.
-4. In a job, select multiple teammates, tap a previous teammate, or add a contact inline. New inline contacts are saved immediately and attached to the draft; the team selection is committed when you save the job. Older Phase 2 drafts remain supported.
-5. Select multiple PDFs/images or take a photo in **ใบทวิ 50**. Supported formats: PDF, JPEG, PNG, WebP, GIF, HEIC/HEIF; **4 MB per file, 20 files per job**. Files are uploaded one at a time, keeping each multipart request within the default Vercel request limit. Choose smaller photos/PDFs if a file is too large. See [Vercel payload limits](https://vercel.com/docs/functions/limitations).
-6. New files, replacements, and confirmed deletions are applied when saving the job. Unsaved file selections are kept in memory and must be selected again if the page is closed; text and team drafts remain autosaved. Successful files are retained if a later upload fails. Retry Save to send only the remaining changes.
-7. A Files row stores a stable file ID, job ID, Drive file ID, name, MIME type, private Drive link, and creation time. Replacements update the existing Drive file, preserving its link. Deleting moves it to Drive Trash and removes its Files row. Deleting a job cleans up its certificates as well; a failed cleanup keeps the job pending for retry.
-8. Preview uses an authenticated server endpoint, with no public file permissions or OAuth tokens in the browser. Image/PDF preview support depends on the phone/browser; HEIC/HEIF and mobile PDF viewers may require **เปิดไฟล์ต้นฉบับ** or **เปิดใน Google Drive**. A Drive upload marker lets a failed Sheets write be retried without creating a duplicate file.
-9. Run `npm test` once, then `npm run check` once. Live contact, Drive upload/replace/delete, and phone-camera behavior require the configured Google account; a production build alone does not verify them. Keep credentials in `.env.local` or private Vercel environment variables.
-
-Google documents [Drive upload formats](https://developers.google.com/workspace/drive/api/guides/manage-uploads) and the recommended [per-file OAuth scope](https://developers.google.com/workspace/drive/api/guides/api-specific-auth).
-
-## Phase 4 payment tracking and reports
-
-1. No new API, OAuth scope, or environment setting is needed. Open the app with your existing account; it appends `client` and `job_count` headers to the Summary tab, installs formulas, and sets the spreadsheet timezone to **Asia/Bangkok**. Existing job/contact/file column positions remain unchanged.
-2. Payment controls appear on calendar job cards, unpaid dashboard cards, and saved job forms. Statuses are `not_invoiced`, `waiting_for_payment`, `partially_paid`, `paid`, `overdue`, and `cancelled`, with Thai colored badges. Paid amount and paid date are stored in Jobs columns R:S; status is Q. Updates change these fields and the job version only.
-3. Selecting Paid fills the full job income and today's date. A positive paid amount requires a paid date; partial payments must be between zero and the job income. Not invoiced/Waiting reset paid amount/date to zero/empty. To reduce a job's income below its recorded receipts, correct the payment first. Changing the income on a paid job can reopen its remaining balance.
-4. Expected payment date remains work date plus credit days. An unpaid job becomes Overdue **after** that date in Bangkok, preserving partial receipts. Paid and Cancelled jobs are exempt. Automatic status changes are saved to Sheets during authenticated reads/revalidation; no background scheduler is installed. An already overdue job can be changed to another status, and past-due unpaid jobs are marked overdue again by the due-date rule.
-5. Payment edits update the UI optimistically and roll back on failure. Calendar, dashboard, and open saved-job payment panels revalidate every **30 seconds while visible and online**, plus on window focus or reconnect. Stale edits return a conflict instead of deliberately overwriting a newer version. Sheets remains intended for personal use; avoid simultaneous manual row rearrangement during writes.
-6. Open **รายงาน** for the current work month's income, expenses, net, and unpaid balance. Month, client, payment status, and outfit filters apply to these totals, the unpaid list, and CSV. Select **ทุกเดือน** to include older unpaid jobs. The list sorts by expected payment date. The six-month chart ends at the selected month and uses client/status/outfit filters across its six months.
-7. Income is the amount recorded on each job; paid amount/date track receipts separately. Totals use integer cents. Cancelled jobs contribute no income or unpaid balance; their recorded expenses are included. Jobs pending deletion are excluded. Net = income − expenses; unpaid = max(income − paid amount, 0), with Paid/Cancelled excluded.
-8. **Summary A:G is app-managed.** A:E contains monthly work-date income/expense/net/unpaid formulas; F:G contains non-cancelled job counts by client. Formula anchors are A2:G2 and spill down their columns. Keep other notes outside A:G. If you already entered manual data there, move it before initialization; a literal value in the formula anchor triggers a configuration error instead of being overwritten. Data below an anchor can block the formula spill and should be moved manually. The formulas cover all months/clients independently of dashboard filters.
-9. **เปิด Google Sheets** opens your spreadsheet. **ส่งออก CSV** downloads the filtered job rows with expense totals/items, reporting income, net, and unpaid amounts. CSV uses UTF-8 with a BOM for Thai text, quotes multiline values, and neutralizes leading formula characters in free text for spreadsheet safety. Raw job income is retained alongside reporting income for cancelled jobs.
-10. Run `npm test` once for the two payment-date/totals tests and `npm run check` once for lint, TypeScript, and production build. Live Google Sheets persistence and Summary formula recalculation require a signed-in account; the build verifies code, not a live Google transaction. Phase 5 has not been started.
-
-Google's [MAP function reference](https://support.google.com/docs/answer/12568985?hl=en-GB) and [Sheets formula writing guide](https://developers.google.com/workspace/sheets/api/samples/writing) describe the formula features used by Summary.
+Routes/pages are in `src/app`, feature UI in `src/components`, shared Google/storage/calculation/validation utilities in `src/lib`, and TypeScript types in `src/types`. The project uses no installable web-app assets or service worker dependencies.

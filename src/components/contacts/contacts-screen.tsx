@@ -1,7 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useAppRuntime, useErrorToast } from "@/components/ui/app-runtime";
+import { mutationEvent, overlayContacts } from "@/lib/offline/store";
+import type { MutationEvent } from "@/types/offline";
 import { Brand } from "@/components/ui/brand";
 import { AuthButton } from "@/components/auth/auth-button";
 import { AppNav } from "@/components/ui/app-nav";
@@ -15,6 +18,7 @@ import { t } from "@/lib/i18n";
 import type { Contact, ContactHistory } from "@/types/contact";
 
 export function ContactsScreen({ initialContacts, initialError = "" }: { initialContacts: ContactHistory[]; initialError?: string }) {
+  const { account, entries, mutate } = useAppRuntime();
   const [contacts, setContacts] = useState(initialContacts);
   const [query, setQuery] = useState("");
   const [editing, setEditing] = useState<Contact | "new" | null>(null);
@@ -23,8 +27,9 @@ export function ContactsScreen({ initialContacts, initialError = "" }: { initial
   const [editorBusy, setEditorBusy] = useState(false);
   const [error, setError] = useState(initialError);
   const [message, setMessage] = useState("");
-  const visible = useMemo(() => contacts.filter((contact) => contactMatches(contact, query)), [contacts, query]);
-  async function refresh() {
+  const visible = useMemo(() => overlayContacts(contacts, entries).filter((contact) => contactMatches(contact, query)), [contacts, entries, query]);
+  useErrorToast(error);
+  const refresh = useCallback(async () => {
     setBusy(true); setError("");
     try {
       const response = await fetch("/api/contacts", { cache: "no-store" });
@@ -33,7 +38,12 @@ export function ContactsScreen({ initialContacts, initialError = "" }: { initial
       setContacts(data.contacts);
     } catch (reason) { setError(reason instanceof Error ? reason.message : t.contacts.failed); }
     finally { setBusy(false); }
-  }
+  }, []);
+  useEffect(() => {
+    const synced = (event: Event) => { const detail = (event as CustomEvent<MutationEvent>).detail; if (detail.account === account && detail.entry.entity.startsWith("contact:")) void refresh(); };
+    const reload = () => { if (navigator.onLine) void refresh(); };
+    window.addEventListener(mutationEvent, synced); window.addEventListener("daily-work-log:discarded", reload); return () => { window.removeEventListener(mutationEvent, synced); window.removeEventListener("daily-work-log:discarded", reload); };
+  }, [account, refresh]);
   function saved(contact: Contact) {
     setContacts((current) => {
       const previous = current.find((value) => value.id === contact.id);
@@ -46,9 +56,7 @@ export function ContactsScreen({ initialContacts, initialError = "" }: { initial
     if (!deleting) return;
     setBusy(true); setError("");
     try {
-      const response = await fetch(`/api/contacts/${deleting.id}`, { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ updatedAt: deleting.updatedAt }) });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || t.contacts.failed);
+      await mutate({ url: `/api/contacts/${deleting.id}`, method: "DELETE", entity: `contact:${deleting.id}`, label: `ลบผู้ร่วมงาน: ${deleting.nickname || deleting.realName}`, json: { updatedAt: deleting.updatedAt }, optimistic: { deleted: true } });
       setContacts((current) => current.filter((contact) => contact.id !== deleting.id)); setMessage(t.contacts.deleted);
     } catch (reason) { setError(reason instanceof Error ? reason.message : t.contacts.failed); }
     finally { setBusy(false); setDeleting(null); }

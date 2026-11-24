@@ -10,5 +10,5 @@ export default async function SettingsPage() {
   let initial: ConnectionResult;
   try { initial = { ok: true, connection: await initializeSpreadsheet() }; }
   catch (error) { initial = connectionFailure(error); }
-  return <WorkspaceScreen email={session.user?.email ?? ""} initial={initial} />;
+  return <WorkspaceScreen email={session.user?.email ?? ""} initial={initial} demoEnabled={process.env.ENABLE_DEMO_SEED === "true"} />;
 }

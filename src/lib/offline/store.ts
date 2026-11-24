@@ -1,0 +1,63 @@
+import type { MutationData, MutationEvent, QueuedRequest } from "@/types/offline";
+import type { ContactHistory } from "@/types/contact";
+import type { Job } from "@/types/job";
+
+export const outboxEvent = "daily-work-log:outbox";
+export const mutationEvent = "daily-work-log:mutation";
+const key = (account: string) => `daily-work-log:${account}:outbox`;
+export function snapshot(account: string | null): string {
+  try { return account && typeof window !== "undefined" ? localStorage.getItem(key(account)) || "[]" : "[]"; } catch { return "[]"; }
+}
+export function parseQueue(raw: string): QueuedRequest[] {
+  try {
+    const value: unknown = JSON.parse(raw);
+    return Array.isArray(value) ? value.filter((entry) => entry && typeof entry.id === "string" && typeof entry.entity === "string" && entry.optimistic && typeof entry.optimistic === "object" && /^\/api\/(jobs|contacts)\//.test(entry.url) && ["PUT", "PATCH", "POST", "DELETE"].includes(entry.method)) : [];
+  } catch { return []; }
+}
+export function queuedRequests(account: string | null): QueuedRequest[] { return parseQueue(snapshot(account)); }
+export function subscribeOutbox(listener: () => void) {
+  window.addEventListener(outboxEvent, listener); window.addEventListener("storage", listener);
+  return () => { window.removeEventListener(outboxEvent, listener); window.removeEventListener("storage", listener); };
+}
+export function writeQueue(account: string, entries: QueuedRequest[]) {
+  try { localStorage.setItem(key(account), JSON.stringify(entries)); }
+  catch { throw new Error("บันทึกในอุปกรณ์ไม่สำเร็จ กรุณาเปิดหน้านี้ไว้และลองบันทึกอีกครั้ง"); }
+  window.dispatchEvent(new Event(outboxEvent));
+}
+export function appendRequest(account: string, entry: QueuedRequest) { writeQueue(account, [...queuedRequests(account), entry]); }
+export function completeRequest(account: string, entry: QueuedRequest, data: MutationData) {
+  const remoteVersion = data.job?.updatedAt || data.contact?.updatedAt;
+  const entries = queuedRequests(account).filter((value) => value.id !== entry.id).map((value) => {
+    if (remoteVersion && entry.localVersion && value.entity === entry.entity && value.json) {
+      const json = { ...value.json };
+      for (const field of ["updatedAt", "baseUpdatedAt"]) if (json[field] === entry.localVersion) json[field] = remoteVersion;
+      return { ...value, json };
+    }
+    return value;
+  });
+  if (queuedRequests(account).length) writeQueue(account, entries);
+  window.dispatchEvent(new CustomEvent<MutationEvent>(mutationEvent, { detail: { account, entry, data } }));
+}
+export function overlayJobs(jobs: Job[], entries: QueuedRequest[]): Job[] {
+  let result = [...jobs];
+  for (const entry of entries) {
+    if (entry.optimistic.job) {
+      const job = entry.optimistic.job;
+      result = result.some((value) => value.id === job.id) ? result.map((value) => value.id === job.id ? job : value) : [...result, job];
+    } else if (entry.entity.startsWith("job:") && entry.optimistic.deleted) result = result.filter((job) => `job:${job.id}` !== entry.entity);
+  }
+  return result;
+}
+
+export function overlayContacts(contacts: ContactHistory[], entries: QueuedRequest[]): ContactHistory[] {
+  let result = [...contacts];
+  for (const entry of entries) {
+    if (entry.optimistic.contact) {
+      const contact = entry.optimistic.contact;
+      const previous = result.find((value) => value.id === contact.id);
+      const value = { ...contact, jobCount: previous?.jobCount || 0, lastJobDate: previous?.lastJobDate || "" };
+      result = previous ? result.map((item) => item.id === contact.id ? value : item) : [value, ...result];
+    } else if (entry.entity.startsWith("contact:") && entry.optimistic.deleted) result = result.filter((contact) => `contact:${contact.id}` !== entry.entity);
+  }
+  return result;
+}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useErrorToast } from "@/components/ui/app-runtime";
 import { AuthButton } from "@/components/auth/auth-button";
 import { Icon } from "@/components/ui/icon";
 import { formatDateTime, t } from "@/lib/i18n";
@@ -9,6 +10,7 @@ import type { ConnectionResult } from "@/types/sheets";
 export function ConnectionPanel({ initial }: { initial: ConnectionResult }) {
   const [result, setResult] = useState(initial);
   const [pending, setPending] = useState(false);
+  useErrorToast(result.ok ? "" : result.message);
   async function retry() {
     setPending(true);
     try {

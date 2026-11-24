@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useAppRuntime } from "@/components/ui/app-runtime";
 import { Brand } from "@/components/ui/brand";
 import { AppNav } from "@/components/ui/app-nav";
 import { AuthButton } from "@/components/auth/auth-button";
@@ -12,7 +13,7 @@ import { CalendarGrid } from "./calendar-grid";
 import { addDays, bangkokDate } from "@/lib/calculations";
 import { formatDay, shiftMonth } from "@/lib/calendar";
 import { t } from "@/lib/i18n";
-import type { Job, JobMutation } from "@/types/job";
+import type { Job } from "@/types/job";
 
 type View = "month" | "week" | "list";
 export function CalendarHome({ initialJobs, initialDate, initialError = "", notice = "" }: { initialJobs: Job[]; initialDate: string; initialError?: string; notice?: string }) {
@@ -20,6 +21,7 @@ export function CalendarHome({ initialJobs, initialDate, initialError = "", noti
   const [anchor, setAnchor] = useState(initialDate);
   const [view, setView] = useState<View>("month");
   const [message, setMessage] = useState(notice === "sync" ? t.jobs.calendarWarning : notice === "saved" ? t.jobs.saved : "");
+  const { mutate: requestMutation } = useAppRuntime();
   const [busy, setBusy] = useState("");
   const [deleting, setDeleting] = useState<Job | null>(null);
   const { jobs, setJobs, error, setError, refresh, refreshing, pendingPayment, savePayment } = useLiveJobs(initialJobs, Boolean(busy), initialError);
@@ -29,9 +31,7 @@ export function CalendarHome({ initialJobs, initialDate, initialError = "", noti
   async function mutate(job: Job, action: "delete" | "sync") {
     setBusy(job.id); setError(""); setMessage("");
     try {
-      const response = await fetch(`/api/jobs/${job.id}${action === "sync" ? "/sync" : ""}`, { method: action === "sync" ? "POST" : "DELETE", ...(action === "delete" ? { headers: { "Content-Type": "application/json" }, body: JSON.stringify({ updatedAt: job.updatedAt }) } : {}) });
-      const data: JobMutation & { error?: string } = await response.json();
-      if (!response.ok) throw new Error(data.error || t.jobs.saveFailed);
+      const data = await requestMutation({ url: `/api/jobs/${job.id}${action === "sync" ? "/sync" : ""}`, method: action === "sync" ? "POST" : "DELETE", entity: `job:${job.id}`, label: `${action === "delete" ? "ลบงาน" : "ซิงก์ปฏิทิน"}: ${job.client}`, ...(action === "delete" ? { json: { updatedAt: job.updatedAt } } : {}), optimistic: action === "delete" ? { deleted: true } : { job } });
       setJobs((current) => data.deleted ? current.filter((value) => value.id !== job.id) : current.map((value) => value.id === job.id && data.job ? data.job : value));
       setMessage(data.warning || (data.deleted ? t.jobs.deleted : t.jobs.syncDone));
       setDeleting(null);

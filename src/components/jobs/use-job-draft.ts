@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import type { JobInput } from "@/types/job";
+import { mutationEvent } from "@/lib/offline/store";
+import { jobToInput } from "@/lib/jobs/defaults";
+import type { MutationEvent } from "@/types/offline";
 import { t } from "@/lib/i18n";
 
 type Draft = { id: string; input: JobInput };
@@ -38,9 +41,22 @@ export function useJobDraft(key: string, initial: Draft) {
     function persist() {
       try { localStorage.setItem(key, JSON.stringify(draft)); } catch { /* Keep the form usable when storage is unavailable. */ }
     }
-    window.addEventListener("pagehide", persist);
-    return () => { clearTimeout(timer); window.removeEventListener("pagehide", persist); };
+    window.addEventListener("pagehide", persist); window.addEventListener("offline", persist);
+    return () => { clearTimeout(timer); window.removeEventListener("pagehide", persist); window.removeEventListener("offline", persist); };
   }, [draft, key, ready, dirty]);
+  useEffect(() => {
+    const synced = (event: Event) => {
+      const { entry, data } = (event as CustomEvent<MutationEvent>).detail;
+      if (!data.job || data.job.id !== draft.id || draft.input.baseUpdatedAt !== entry.localVersion) return;
+      const server = jobToInput(data.job);
+      const same = Object.entries(server).filter(([field]) => field !== "baseUpdatedAt").every(([field, value]) => JSON.stringify(draft.input[field as keyof JobInput] ?? (field === "teamMemberIds" ? [] : undefined)) === JSON.stringify(value));
+      setDraft((current) => ({ ...current, input: { ...current.input, baseUpdatedAt: data.job!.updatedAt } }));
+      if (same) { try { localStorage.removeItem(key); } catch { /* Keep the recoverable draft. */ } setDirty(false); }
+      setMessage("ส่งข้อมูลถึง Google Sheets แล้ว");
+    };
+    window.addEventListener(mutationEvent, synced);
+    return () => window.removeEventListener(mutationEvent, synced);
+  }, [draft, key]);
   function update<K extends keyof JobInput>(field: K, value: JobInput[K]) {
     setDirty(true); setDraft((current) => ({ ...current, input: { ...current.input, [field]: value } }));
   }

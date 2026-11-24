@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useAppRuntime, useErrorToast } from "@/components/ui/app-runtime";
+import { overlayContacts } from "@/lib/offline/store";
 import { FormSection, InputField } from "@/components/ui/form-field";
 import { ContactEditor } from "./contact-editor";
 import { contactMatches } from "@/lib/contacts/search";
@@ -8,14 +10,17 @@ import { t } from "@/lib/i18n";
 import type { Contact, ContactHistory } from "@/types/contact";
 
 export function TeamPicker({ initialContacts, selected, onSelection, onEditingChange }: { initialContacts: ContactHistory[]; selected: string[]; onSelection: (ids: string[]) => void; onEditingChange: (open: boolean) => void }) {
+  const { entries } = useAppRuntime();
   const [contacts, setContacts] = useState(initialContacts);
   const [query, setQuery] = useState("");
   const [adding, setAdding] = useState(false);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const visible = useMemo(() => contacts.filter((contact) => contactMatches(contact, query)), [contacts, query]);
-  const previous = contacts.filter((contact) => contact.jobCount > 0 && !selected.includes(contact.id)).slice(0, 8);
+  useErrorToast(error);
+  const listed = useMemo(() => overlayContacts(contacts, entries), [contacts, entries]);
+  const visible = useMemo(() => listed.filter((contact) => contactMatches(contact, query)), [listed, query]);
+  const previous = listed.filter((contact) => contact.jobCount > 0 && !selected.includes(contact.id)).slice(0, 8);
   const toggle = (id: string) => onSelection(selected.includes(id) ? selected.filter((value) => value !== id) : [...selected, id]);
   function saved(contact: Contact) {
     setContacts((current) => [{ ...contact, jobCount: 0, lastJobDate: "" }, ...current]);
@@ -33,7 +38,7 @@ export function TeamPicker({ initialContacts, selected, onSelection, onEditingCh
   }
   return <FormSection title={t.contacts.team}>
     {selected.length > 0 && <div className="team-selected" aria-label={t.contacts.selected}>{selected.map((id) => {
-      const contact = contacts.find((value) => value.id === id);
+      const contact = listed.find((value) => value.id === id);
       return <button type="button" className={`team-chip ${!contact ? "missing-contact" : ""}`} disabled={adding} key={id} onClick={() => toggle(id)} aria-label={`นำ ${contact?.nickname || contact?.realName || t.contacts.missing} ออกจากทีม`}>{contact?.nickname || contact?.realName || t.contacts.missing}<span aria-hidden="true">×</span></button>;
     })}</div>}
     {previous.length > 0 && <div><p className="picker-label">{t.contacts.previous}</p><div className="team-quick">{previous.map((contact) => <button type="button" className="button button-secondary" disabled={adding || selected.length >= 100} key={contact.id} onClick={() => toggle(contact.id)}>+ {contact.nickname || contact.realName}</button>)}</div></div>}
