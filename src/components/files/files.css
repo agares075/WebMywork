@@ -2,16 +2,16 @@
 .certificate-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .certificate-actions .button { flex: 1 1 140px; font-size: .875rem; padding: 10px; }
 .certificate-list { display: grid; gap: 12px; }
-.certificate-card { padding: 16px; border: 1px solid var(--line); background: var(--surface); border-radius: 14px; }
+.certificate-card { padding: 16px; border: 1px solid var(--line); background: var(--surface); border-radius: var(--radius); }
 .certificate-file-name { display: grid; gap: 4px; overflow-wrap: anywhere; }
 .certificate-file-name strong { font-size: .9375rem; font-weight: 600; }
 .certificate-file-name span { color: var(--muted); font-size: .8125rem; }
 .certificate-file-actions { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 12px; }
-.certificate-file-actions .button { min-height: 44px; padding: 8px 10px; font-size: .875rem; }
-.certificate-deleting { background: #fcf2f2; border-color: #e5c8c8; }
+.certificate-file-actions .button { min-height: var(--touch); padding: 8px 10px; font-size: .875rem; }
+.certificate-deleting { background: var(--error-bg); border-color: var(--error-border); }
 .certificate-deleting strong { text-decoration: line-through; }
 .wide-modal { width: min(100% - 20px, 900px); }
-.file-preview { background: #f0f3f1; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; margin-bottom: 16px; }
+.file-preview { background: var(--surface-raised); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; margin-bottom: 16px; }
 .file-preview iframe { display: block; width: 100%; height: min(65dvh, 740px); border: 0; }
 .file-preview img { display: block; width: 100%; height: auto; max-height: 68dvh; object-fit: contain; }
 .preview-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }

@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 const paths = {
   chart: <><path d="M4 3v17h17M8 16v-4m5 4V8m5 8V5" /></>,
   users: <><circle cx="9" cy="7" r="3" /><path d="M3 21v-3a6 6 0 0 1 12 0v3M16 4a3 3 0 0 1 0 6m3 11v-3a6 6 0 0 0-3-5" /></>,
-  log: <><rect x="5" y="4" width="14" height="17" rx="3" /><path d="M9 3v3m6-3v3M9 11h6m-6 4h4" /></>,
+  log: <><rect x="5" y="4" width="14" height="17" rx="1" /><path d="M9 3v3m6-3v3M9 11h6m-6 4h4" /></>,
   shield: <><path d="m12 3 8 3v5c0 5-5 8-8 10-3-2-8-5-8-10V6l8-3Z" /><path d="m8.5 12 2.5 2.5 4.5-5" /></>,
   sheet: <><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z" /><path d="M14 3v6h6M8 13h8m-8 4h8m-4-4v4" /></>,
   check: <path d="m5 12 4 4L19 6" />,
@@ -15,7 +15,7 @@ const paths = {
 } satisfies Record<string, ReactNode>;
 
 export function Icon({ name, className = "" }: { name: keyof typeof paths; className?: string }) {
-  return <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>;
+  return <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="square" strokeLinejoin="miter" aria-hidden="true">{paths[name]}</svg>;
 }
 
 export function GoogleIcon() {

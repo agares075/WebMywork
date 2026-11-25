@@ -10,10 +10,10 @@ type Theme = "system" | "light" | "dark";
 type Toast = { id: number; message: string; kind: "error" | "info" };
 type Runtime = { account: string | null; theme: Theme; setTheme: (value: Theme) => void; entries: QueuedRequest[]; notify: (message: string, kind?: Toast["kind"]) => void; mutate: (request: MutationRequest) => Promise<MutationData> };
 const Context = createContext<Runtime | null>(null);
-function readTheme(): Theme { try { const value = localStorage.getItem("daily-work-log:theme"); return value === "light" || value === "dark" ? value : "system"; } catch { return "system"; } }
+function readTheme(): Theme { try { const value = localStorage.getItem("daily-work-log:theme"); return value === "light" || value === "system" ? value : "dark"; } catch { return "dark"; } }
 
 export function AppRuntime({ account, children }: { account: string | null; children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("system");
+  const [theme, setThemeState] = useState<Theme>("dark");
   const [themeReady, setThemeReady] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [online, setOnline] = useState(true);

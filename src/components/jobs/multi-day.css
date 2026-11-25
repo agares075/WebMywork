@@ -1,16 +1,16 @@
-﻿.multi-date-modes, .multi-date-heading, .multi-date-grid, .multi-date-count { width: 100%; max-width: 480px; margin-inline: auto; }
+.multi-date-modes, .multi-date-heading, .multi-date-grid, .multi-date-count { width: 100%; max-width: 480px; margin-inline: auto; }
 .multi-date-heading, .multi-date-count { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.multi-date-heading .button { font-size: 1.75rem; padding: 4px 16px; min-height: 46px; }
+.multi-date-heading .button { font-size: 1.75rem; padding: 4px 16px; min-height: var(--touch); }
 .multi-date-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; }
 .multi-weekday { text-align: center; color: var(--muted); font-size: .8125rem; padding-bottom: 8px; }
-.multi-date-grid button { min-width: 0; min-height: 46px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--text); font: inherit; font-weight: 600; cursor: pointer; }
+.multi-date-grid button { min-width: 0; min-height: var(--touch); border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--text); font: inherit; font-weight: 600; cursor: pointer; }
 .multi-date-grid button.outside-month { color: var(--muted); font-weight: 400; }
-.multi-date-grid button[aria-current="date"] { outline: 2px solid var(--green); outline-offset: -4px; }
-.multi-date-grid button[aria-pressed="true"] { background: var(--green); border-color: var(--green); color: #fff; }
-.multi-date-grid button[aria-pressed="true"][aria-current="date"] { outline-color: #fff; }
+.multi-date-grid button[aria-current="date"] { outline: 2px solid var(--accent-text); outline-offset: -4px; }
+.multi-date-grid button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.multi-date-grid button[aria-pressed="true"][aria-current="date"] { outline-color: var(--on-accent); }
 .multi-date-grid button:focus-visible { outline: 3px solid var(--text); outline-offset: 1px; }
-.multi-date-modes button { flex: 1; min-height: 48px; white-space: normal; }
-.selected-job-day { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; min-width: 0; }
+.multi-date-modes button { flex: 1; min-height: var(--touch); white-space: normal; }
+.selected-job-day { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; min-width: 0; }
 .selected-day-toggle { display: flex; justify-content: space-between; gap: 12px; width: 100%; min-height: 70px; padding: 14px 12px; background: var(--surface); color: var(--text); border: 0; text-align: left; cursor: pointer; font: inherit; }
 .selected-day-toggle > span { display: grid; gap: 4px; align-content: center; }
 .selected-day-toggle small { color: var(--muted); font-size: .75rem; }
@@ -20,6 +20,5 @@
 .multi-day-totals { display: flex; flex-wrap: wrap; gap: 10px 20px; padding: 18px 0; }
 .group-payment-option { margin-bottom: 16px; }
 .group-day-links { display: flex; flex-wrap: wrap; gap: 10px 16px; font-size: .9375rem; }
-.job-group-badge { display: inline-block; margin-top: 6px; border: 1px solid var(--line); border-radius: 20px; padding: 3px 10px; color: var(--text); background: var(--green-soft); font-size: .75rem; font-weight: 600; }
+.job-group-badge { display: inline-block; margin-top: 6px; border: 1px solid var(--accent-text); border-radius: var(--radius); padding: 3px 10px; clip-path: var(--chamfer); color: var(--text); background: var(--accent-soft); font-size: .75rem; font-weight: 600; }
 @media (min-width: 700px) { .selected-day-editor { padding: 22px; } .selected-day-editor .form-section { padding: 20px; } }
-[data-theme="dark"] .multi-date-grid button[aria-pressed="true"] { background: #216a49; border-color: #99e3b8; color: #fff; }

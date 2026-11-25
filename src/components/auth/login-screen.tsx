@@ -8,11 +8,12 @@ export function LoginScreen({ missingFields, error }: { missingFields: string[];
     <section className="welcome-panel">
       <Brand light />
       <div className="welcome-copy">
+        <p className="hero-display" lang="en" aria-hidden="true">DAILY <span>/</span><br />WORK LOG</p>
         <span className="eyebrow welcome-eyebrow"><span className="tiny-line" />{t.login.eyebrow}</span>
         <h1>{t.login.title}</h1>
         <p>{t.login.description}</p>
         <div className="notebook" aria-hidden="true">
-          <div className="notebook-top"><span>DAILY WORK LOG</span><Icon name="sun" /></div>
+          <div className="notebook-top"><span lang="en">DAILY WORK LOG</span><Icon name="sun" /></div>
           <div className="notebook-line" /><div className="notebook-line short" />
           <div className="notebook-bottom"><span className="notebook-check"><Icon name="check" /></span><span>วันทำงานที่เป็นระเบียบ เริ่มที่นี่</span></div>
         </div>
@@ -22,7 +23,7 @@ export function LoginScreen({ missingFields, error }: { missingFields: string[];
     <section className="login-content" aria-labelledby="login-heading">
       <div className="login-card">
         <span className="login-symbol"><Icon name="log" /></span>
-        <p className="eyebrow muted">LET’S GET STARTED</p>
+        <p className="eyebrow muted" lang="en">LET’S GET STARTED</p>
         <h2 id="login-heading">{t.login.welcome}</h2>
         <p className="login-instruction">{t.login.instruction}</p>
         {error && <div className="notice notice-error" role="alert">{error}</div>}

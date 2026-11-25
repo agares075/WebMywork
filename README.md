@@ -109,6 +109,8 @@ PDF/image previews require your authenticated app session. Phone PDF/HEIC viewer
 
 ## Display, payments, and reports
 
+The default appearance is near-black with crimson controls, green income, and pink-red expenses. All palette, font, shape, spacing, and motion tokens are in `src/components/ui/theme.css`; shared controls are styled in `src/components/ui/primitives.css`. Noto Sans Thai and Permanent Marker are loaded at build time with `next/font/google` and served locally; Thai/data-entry content stays in the clean Thai font, with the display face reserved for English branding and dashboard figures.
+
 Choose **การเชื่อมต่อ → รูปแบบการแสดงผล** for System/Light/Dark mode. Theme preference is retained locally, with accessible input/focus colors, reduced-motion support, loading skeletons, and dismissible error toasts.
 
 Payment statuses, paid amount, and paid date can be edited from job cards and saved job forms. Positive receipts require a paid date; Paid fills the full income and today's date. Unpaid jobs become Overdue after their expected Bangkok payment date; Paid/Cancelled jobs are exempt. Automatic overdue changes persist during authenticated reads, and visible pages revalidate every 30 seconds when online. No scheduled server task is installed.

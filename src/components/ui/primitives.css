@@ -1,0 +1,67 @@
+.button { display: inline-flex; justify-content: center; align-items: center; gap: var(--space-3); min-height: var(--touch); padding: var(--space-3) var(--space-5); border: 1px solid transparent; border-radius: var(--radius); font-family: var(--font-body); font-weight: 700; font-size: .9375rem; text-align: center; line-height: 1.5; transition: background var(--motion), border-color var(--motion), box-shadow var(--motion), transform var(--motion); }
+.button-primary { position: relative; isolation: isolate; background: transparent; color: var(--on-accent); border: 0; box-shadow: 3px 3px 0 var(--accent-shadow); }
+.button-primary::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--accent); clip-path: var(--chamfer); transition: background var(--motion); }
+.button-primary:hover:not(:disabled)::before { background: var(--accent-hover); }
+.button-primary:active:not(:disabled) { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--accent-shadow); }
+.button-secondary { border-color: var(--field-line); background: transparent; color: var(--text); }
+.button-secondary:hover:not(:disabled), .button-quiet:hover:not(:disabled) { background: var(--accent-soft); border-color: var(--accent-text); color: var(--text); }
+.button-quiet { background: transparent; color: var(--muted); padding: 10px 12px; font-weight: 500; }
+.button-quiet svg { width: 19px; }
+.button-danger { color: var(--expense); background: transparent; border-color: var(--expense); box-shadow: 3px 3px 0 var(--shadow); }
+.button-danger:hover:not(:disabled) { background: var(--expense-soft); }
+.delete-text { color: var(--expense); }
+.text-link { color: var(--accent-text); text-decoration: underline; text-underline-offset: 4px; }
+.form-disabled-group { border: 0; padding: 0; margin: 0; min-width: 0; }
+.form-section { margin: 0 0 24px; padding: var(--space-5); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: var(--radius); background: var(--surface); min-width: 0; }
+.form-section legend { padding: 0 8px; font-weight: 700; font-size: 1.0625rem; }
+.section-fields { display: grid; gap: var(--space-5); }
+.form-field { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
+.form-field label { font-size: .9375rem; color: var(--text); font-weight: 500; }
+.form-field input, .form-field textarea, .form-field select { width: 100%; min-width: 0; min-height: 52px; padding: var(--space-3); border: 1px solid var(--field-line); background: var(--input); color: inherit; border-radius: var(--radius); font: inherit; font-family: var(--font-body); font-size: 16px; line-height: 1.6; transition: border-color var(--motion), box-shadow var(--motion); }
+.form-field input::placeholder, .form-field textarea::placeholder { color: var(--muted); opacity: 1; }
+.form-field input[type="date"], .form-field input[type="time"], .form-field input[type="datetime-local"] { -webkit-appearance: none; appearance: none; }
+.form-field textarea { resize: vertical; min-height: 104px; }
+.form-field select { appearance: none; padding-right: 36px; background-image: var(--select-arrow); background-repeat: no-repeat; background-position: right 12px center; }
+.form-field :is(input, textarea, select):focus { outline: 1px solid var(--accent-text); outline-offset: 0; border-color: var(--accent-text); box-shadow: 0 0 0 3px var(--focus-glow); }
+.form-field :is(input, textarea, select):user-invalid, .form-field [aria-invalid="true"] { border-color: var(--error-border); background-color: var(--error-bg); }
+.field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
+.field-help { font-size: .8125rem; color: var(--muted); margin-top: -8px; }
+.checkbox-field { display: flex; align-items: flex-start; gap: var(--space-3); font-size: .9375rem; cursor: pointer; padding: 12px 0; min-height: var(--touch); }
+.checkbox-field input { accent-color: var(--accent); width: 22px; height: 22px; flex-shrink: 0; margin-top: 2px; }
+.money-income, .money-income input { color: var(--income); }
+.money-expense, .money-expense input { color: var(--expense); }
+.view-tabs { display: inline-flex; padding: var(--space-1); gap: var(--space-1); border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+.view-tabs button { min-width: 52px; min-height: var(--touch); background: transparent; border: 1px solid transparent; border-radius: var(--radius); font-size: .875rem; font-weight: 600; color: var(--muted); padding: 8px 10px; transition: background var(--motion), color var(--motion); }
+.view-tabs button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
+.view-tabs button:hover:not([aria-pressed="true"]) { color: var(--text); border-color: var(--field-line); }
+.payment-badge { display: inline-flex; align-items: center; border-radius: var(--radius); min-height: 30px; padding: 4px 10px; font-size: .8125rem; font-weight: 600; border: 1px solid; white-space: nowrap; }
+.payment-not_invoiced { color: var(--status-neutral); background: var(--status-neutral-bg); border-color: var(--status-neutral-border); }
+.payment-waiting_for_payment { color: var(--status-waiting); background: var(--status-waiting-bg); border-color: var(--status-waiting-border); }
+.payment-partially_paid { color: var(--status-partial); background: var(--status-partial-bg); border-color: var(--status-partial-border); }
+.payment-paid { color: var(--success); background: var(--success-bg); border-color: var(--success-border); }
+.payment-overdue { color: var(--error); background: var(--error-bg); border-color: var(--error-border); }
+.payment-cancelled { color: var(--status-cancelled); background: var(--status-cancelled-bg); border-color: var(--status-cancelled-border); border-style: dashed; }
+.feature-modal, .confirm-dialog { width: min(100% - 28px, 490px); max-width: none; max-height: calc(100dvh - 32px); overflow-y: auto; margin: auto; border: 1px solid var(--field-line); border-top: 4px solid var(--accent); border-radius: var(--radius); padding: var(--space-6); color: var(--text); background: var(--surface-raised); box-shadow: 6px 6px 0 var(--shadow); }
+.confirm-dialog { width: min(100% - 32px, 440px); }
+.feature-modal::backdrop, .confirm-dialog::backdrop { background: var(--backdrop); }
+.modal-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3); margin-bottom: 20px; }
+.modal-heading h2 { font-size: 1.25rem; overflow-wrap: anywhere; margin-top: 8px; }
+.modal-heading > .button { min-width: var(--touch); min-height: var(--touch); padding: 0; font-size: 1.75rem; flex-shrink: 0; }
+.confirm-dialog h2 { font-size: 1.375rem; }
+.confirm-dialog p { color: var(--muted); margin: 12px 0 24px; font-size: .9375rem; overflow-wrap: anywhere; }
+.dialog-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); justify-content: flex-end; margin-top: 16px; }
+.dialog-actions .button { flex: 1; }
+.notice { padding: var(--space-4); border: 1px solid; border-left-width: 3px; border-radius: var(--radius); margin: 18px 0; font-size: .875rem; overflow-wrap: anywhere; }
+.notice p { margin-top: 6px; }
+.notice-error { color: var(--error); background: var(--error-bg); border-color: var(--error-border); }
+.notice-setup { color: var(--warning); background: var(--warning-bg); border-color: var(--warning-border); }
+.configuration-list { margin: 12px 0 0; padding-left: 19px; font-size: .8125rem; }
+.configuration-list code { font-size: inherit; }
+.error-text { font-size: .875rem; color: var(--error); margin-top: 12px; }
+@media (max-width: 639px) {
+  .feature-modal, .confirm-dialog { margin: auto auto 0; width: 100%; max-height: calc(100dvh - 16px); padding: 24px 20px calc(24px + env(safe-area-inset-bottom)); border-left: 0; border-right: 0; border-bottom: 0; }
+}
+@media (prefers-reduced-motion: no-preference) { .feature-modal[open], .confirm-dialog[open] { animation: sheet-enter var(--motion) ease-out; } }
+.notice-feedback { position: relative; padding-right: 52px; background: var(--surface-raised); border-color: var(--line); border-left-color: var(--accent); color: var(--text); }
+.dismiss-notice { position: absolute; top: 3px; right: 3px; min-width: var(--touch); min-height: var(--touch); background: transparent; border: none; color: inherit; font-size: 1.5rem; }
+@media (max-width: 639px) { .feature-modal.wide-modal { width: 100%; } }
