@@ -2,7 +2,7 @@ import type { Job } from "./job";
 import type { Contact } from "./contact";
 import type { JobFile } from "./file";
 
-export type MutationData = { job?: Job; contact?: Contact; file?: JobFile; deleted?: boolean; warning?: string; queued?: boolean };
+export type MutationData = { job?: Job; jobs?: Job[]; deletedIds?: string[]; contact?: Contact; file?: JobFile; deleted?: boolean; warning?: string; queued?: boolean };
 export type QueuedRequest = {
   id: string; url: string; method: "PUT" | "PATCH" | "POST" | "DELETE";
   entity: string; label: string; json?: Record<string, unknown>; blobKey?: string;

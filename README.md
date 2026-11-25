@@ -71,13 +71,23 @@ Google Testing-mode refresh tokens can expire; reconnect when prompted. See [Goo
 
 ## Google data initialization
 
-The first authenticated visit creates missing tabs and exact header rows: **Jobs**, **Expenses**, **Contacts**, **Files**, **Summary**. Existing unrelated tabs remain. Stable UUIDs link rows. Schema definitions are in `src/lib/sheets/schema.ts`; conflicting existing headers stop initialization before overwriting data. Older 24-column Jobs and 5-column Summary headers receive append-only migrations.
+The first authenticated visit creates missing tabs and exact header rows: **Jobs**, **Expenses**, **Contacts**, **Files**, **Summary**. Existing unrelated tabs remain. Stable UUIDs link rows. Schema definitions are in `src/lib/sheets/schema.ts`; conflicting existing headers stop initialization before overwriting data. Older 24–26-column Jobs and 5-column Summary headers receive append-only migrations. Jobs now appends jobGroupId (AA) and payment_base_date (AB); grid capacity is expanded before writing only the missing header cells. Existing rows keep empty group/payment-base values and retain their original meaning.
 
 Summary columns A:E contain monthly income, expenses, net profit, and unpaid totals; F:G contain job counts by client. Formula anchors A2:G2 spill down the columns, so keep manual notes outside A:G. Move existing manual content before initialization; cells below an anchor can block a formula spill. Summary uses all records independently of dashboard filters and the spreadsheet timezone is set to Asia/Bangkok.
 
 Job events use your **primary** Google Calendar. End time at/before start means the next day; check-in/out include explicit dates. Optional payment reminders are all-day events. App edits update Calendar; external Calendar edits are not imported into Sheets. A failed Calendar operation leaves a retryable pending status.
 
 The first certificate upload creates a private **Daily Work Log – ใบทวิ 50** folder in My Drive. Reuse the same spreadsheet ID and OAuth client to find that folder again. Files rows store the stable record ID, job ID, Drive file ID, name, MIME type, private URL, and creation time. Replacing preserves the Drive link; deleting moves the file to Trash and removes its row. Job deletion also cleans up its certificates.
+
+## Multi-day jobs
+
+In **เพิ่มงาน**, choose **ช่วงวันที่** or **เลือกวันเอง** on the Thai month grid (1–31 unique days per save). Common fields supply defaults for all days; expand a selected day to override its times, check-in/out, money, outfit/shoes, comment, or payment. Expenses entered in the common section are **per day**. Income can be per day or a total split in integer satang, with any remainder assigned to the earliest days. Manual daily income overrides change the displayed total.
+
+Each date gets one normal Jobs row, unique ID, its own expenses and Calendar event, and a shared jobGroupId. There is no extra group-total row, so dashboard, Summary formulas, and CSV continue to sum daily records once. Choose **รับเงินครั้งเดียวหลังวันสุดท้าย** to anchor all expected dates to the final selected work date plus each day's credit; otherwise use each work date plus credit.
+
+Opening a grouped job lists the other days. Choose **แก้เฉพาะวันนี้** or **ใช้การเปลี่ยนแปลงกับทุกวันในกลุ่ม**; group edits apply changed fields while retaining other daily differences. Payment changes can explicitly apply to all days, while certificates remain attached to the opened day. Deleting asks for this day or the whole group before confirmation. Initial-form certificates attach to the first selected day; add files for other days from their saved entries.
+
+The complete multi-day selection and overrides auto-save locally. One queued group request writes all daily rows together before syncing their separate Calendar events. Avoid changing a submitted selection; finish/retry pending certificates or return to the calendar. Group conflicts remain blocked for review instead of overwriting concurrent changes. Deletion retries tolerate already-removed days.
 
 ## Offline recovery and sync
 
@@ -119,7 +129,7 @@ Seeding writes Sheets only; it does not create Calendar events or Drive files. S
 npm run check
 ```
 
-This runs lint, TypeScript route generation/type-check, and the production build once. The existing two critical payment-date/totals tests remain available with `npm test`. After building, use `npm start` for a local production server. HTTP is accepted only for localhost/127.0.0.1; deployed URLs use HTTPS.
+This runs lint, TypeScript route generation/type-check, and the production build once. The two existing payment-date/totals tests and two focused date-expansion/income-splitting tests run with `npm test`. After building, use `npm start` for a local production server. HTTP is accepted only for localhost/127.0.0.1; deployed URLs use HTTPS.
 
 Phone camera behavior, offline/reconnect replay, browser image compression, and live Sheets/Calendar/Drive changes need a signed-in browser/device check. The build does not exercise a real Google transaction.
 

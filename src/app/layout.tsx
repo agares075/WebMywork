@@ -8,6 +8,7 @@ import { t } from "@/lib/i18n";
 import "@/components/ui/globals.css";
 import "@/components/calendar/calendar.css";
 import "@/components/jobs/jobs.css";
+import "@/components/jobs/multi-day.css";
 import "@/components/contacts/contacts.css";
 import "@/components/files/files.css";
 import "@/components/dashboard/dashboard.css";

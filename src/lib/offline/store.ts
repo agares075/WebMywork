@@ -25,30 +25,37 @@ export function writeQueue(account: string, entries: QueuedRequest[]) {
   window.dispatchEvent(new Event(outboxEvent));
 }
 export function appendRequest(account: string, entry: QueuedRequest) { writeQueue(account, [...queuedRequests(account), entry]); }
+export function mergeJobs(jobs: Job[], data: MutationData): Job[] {
+  const updates = [...(data.jobs || []), ...(data.job ? [data.job] : [])];
+  const ids = new Set(jobs.map((job) => job.id));
+  return [...jobs.map((job) => updates.find((value) => value.id === job.id) || job), ...updates.filter((job) => !ids.has(job.id))].filter((job) => !data.deletedIds?.includes(job.id));
+}
 export function completeRequest(account: string, entry: QueuedRequest, data: MutationData) {
-  const remoteVersion = data.job?.updatedAt || data.contact?.updatedAt;
+  const remote = [...(data.jobs || []), ...(data.job ? [data.job] : [])];
+  const local = [...(entry.optimistic.jobs || []), ...(entry.optimistic.job ? [entry.optimistic.job] : [])];
+  const version = (id: string, previous: unknown) => remote.find((job) => job.id === id && local.some((value) => value.id === id && value.updatedAt === previous))?.updatedAt || previous;
   const entries = queuedRequests(account).filter((value) => value.id !== entry.id).map((value) => {
-    if (remoteVersion && entry.localVersion && value.entity === entry.entity && value.json) {
-      const json = { ...value.json };
-      for (const field of ["updatedAt", "baseUpdatedAt"]) if (json[field] === entry.localVersion) json[field] = remoteVersion;
-      return { ...value, json };
+    if (!value.json) return value;
+    const json = { ...value.json };
+    if (value.entity.startsWith("job:")) {
+      const id = value.entity.slice(4);
+      for (const field of ["updatedAt", "baseUpdatedAt"]) if (json[field]) json[field] = version(id, json[field]);
     }
-    return value;
+    if (Array.isArray(json.days)) json.days = json.days.map((day: { id: string; input: Record<string, unknown> }) => ({ ...day, input: { ...day.input, baseUpdatedAt: version(day.id, day.input.baseUpdatedAt) } }));
+    if (Array.isArray(json.versions)) json.versions = json.versions.map((day: { id: string; updatedAt: string }) => ({ ...day, updatedAt: version(day.id, day.updatedAt) }));
+    if (data.contact && entry.localVersion && value.entity === entry.entity)
+      for (const field of ["updatedAt", "baseUpdatedAt"]) if (json[field] === entry.localVersion) json[field] = data.contact.updatedAt;
+    return { ...value, json };
   });
   if (queuedRequests(account).length) writeQueue(account, entries);
   window.dispatchEvent(new CustomEvent<MutationEvent>(mutationEvent, { detail: { account, entry, data } }));
 }
 export function overlayJobs(jobs: Job[], entries: QueuedRequest[]): Job[] {
-  let result = [...jobs];
-  for (const entry of entries) {
-    if (entry.optimistic.job) {
-      const job = entry.optimistic.job;
-      result = result.some((value) => value.id === job.id) ? result.map((value) => value.id === job.id ? job : value) : [...result, job];
-    } else if (entry.entity.startsWith("job:") && entry.optimistic.deleted) result = result.filter((job) => `job:${job.id}` !== entry.entity);
-  }
-  return result;
+  return entries.reduce((result, entry) => {
+    const data = entry.optimistic;
+    return mergeJobs(result, data.deleted && entry.entity.startsWith("job:") ? { ...data, deletedIds: [entry.entity.slice(4)] } : data);
+  }, jobs);
 }
-
 export function overlayContacts(contacts: ContactHistory[], entries: QueuedRequest[]): ContactHistory[] {
   let result = [...contacts];
   for (const entry of entries) {

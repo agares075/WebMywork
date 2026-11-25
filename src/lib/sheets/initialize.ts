@@ -14,9 +14,10 @@ export async function initializeSpreadsheet(): Promise<SheetsConnection> {
   const spreadsheetId = getEnvironment().GOOGLE_SPREADSHEET_ID;
   const { data } = await client.spreadsheets.get({
     spreadsheetId,
-    fields: "spreadsheetUrl,properties(title,timeZone),sheets(properties(sheetId,title))"
+    fields: "spreadsheetUrl,properties(title,timeZone),sheets(properties(sheetId,title,gridProperties(columnCount)))"
   });
   const existing = new Map((data.sheets ?? []).map((sheet) => [sheet.properties?.title, sheet.properties?.sheetId]));
+  const columnCounts = new Map((data.sheets ?? []).map((sheet) => [sheet.properties?.title, sheet.properties?.gridProperties?.columnCount ?? 26]));
   const present = sheetNames.filter((name) => existing.has(name));
   const rows = present.length ? await client.spreadsheets.values.batchGet({
     spreadsheetId,
@@ -52,8 +53,9 @@ export async function initializeSpreadsheet(): Promise<SheetsConnection> {
     if (missing) {
       do { sheetId = randomInt(1, 2_000_000_000); } while (usedIds.has(sheetId));
       usedIds.add(sheetId);
-      requests.push({ addSheet: { properties: { sheetId, title: name, gridProperties: { frozenRowCount: 1 } } } });
+      requests.push({ addSheet: { properties: { sheetId, title: name, gridProperties: { frozenRowCount: 1, columnCount: Math.max(26, sheetHeaders[name].length) } } } });
     }
+    if (!missing && (columnCounts.get(name) ?? 26) < sheetHeaders[name].length) requests.push({ updateSheetProperties: { properties: { sheetId, gridProperties: { columnCount: sheetHeaders[name].length } }, fields: "gridProperties.columnCount" } });
     if (name === "Summary") {
       if (sheetId == null) throw new Error("Missing Summary sheet ID");
       const current = rows?.data.valueRanges?.[present.indexOf(name)]?.values?.[1] ?? [];

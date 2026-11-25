@@ -7,7 +7,7 @@ export const sheetHeaders = {
     "check_in", "check_out", "total_hours", "income", "outfit", "shoes", "credit_days",
     "expected_payment_date", "comment", "payment_status", "paid_amount", "paid_date",
     "team_member_ids", "calendar_event_id", "payment_reminder_event_id", "created_at", "updated_at",
-    "payment_reminder_enabled", "calendar_sync_status"
+    "payment_reminder_enabled", "calendar_sync_status", "jobGroupId", "payment_base_date"
   ],
   Expenses: ["id", "job_id", "label", "amount", "created_at", "updated_at"],
   Contacts: ["id", "phone", "real_name", "nickname", "created_at", "updated_at"],

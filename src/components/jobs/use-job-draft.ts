@@ -24,7 +24,7 @@ export function useJobDraft(key: string, initial: Draft) {
       try {
         const raw = localStorage.getItem(key);
         const stored: unknown = raw ? JSON.parse(raw) : null;
-        if (isDraft(stored) && (key.endsWith(":new") || stored.id === initial.id)) {
+        if (isDraft(stored) && stored.id === initial.id) {
           setDraft(stored); setDirty(true); setMessage(t.jobs.draftRestored);
         }
       } catch { setMessage(t.jobs.draftUnavailable); }
@@ -47,10 +47,12 @@ export function useJobDraft(key: string, initial: Draft) {
   useEffect(() => {
     const synced = (event: Event) => {
       const { entry, data } = (event as CustomEvent<MutationEvent>).detail;
-      if (!data.job || data.job.id !== draft.id || draft.input.baseUpdatedAt !== entry.localVersion) return;
-      const server = jobToInput(data.job);
+      const job = data.job?.id === draft.id ? data.job : data.jobs?.find((value) => value.id === draft.id);
+      const localVersion = entry.localVersion || entry.optimistic.jobs?.find((value) => value.id === draft.id)?.updatedAt;
+      if (!job || draft.input.baseUpdatedAt !== localVersion) return;
+      const server = jobToInput(job);
       const same = Object.entries(server).filter(([field]) => field !== "baseUpdatedAt").every(([field, value]) => JSON.stringify(draft.input[field as keyof JobInput] ?? (field === "teamMemberIds" ? [] : undefined)) === JSON.stringify(value));
-      setDraft((current) => ({ ...current, input: { ...current.input, baseUpdatedAt: data.job!.updatedAt } }));
+      setDraft((current) => ({ ...current, input: { ...current.input, baseUpdatedAt: job.updatedAt } }));
       if (same) { try { localStorage.removeItem(key); } catch { /* Keep the recoverable draft. */ } setDirty(false); }
       setMessage("ส่งข้อมูลถึง Google Sheets แล้ว");
     };

@@ -39,6 +39,7 @@ export async function saveJob(id: string, input: JobInput): Promise<JobMutation>
     const contacts = await readRecords("Contacts");
     if (input.teamMemberIds.some((member) => !contacts.rows.some((row) => row[0] === member))) throw new JobError(409, t.contacts.missing);
   }
+  if (previous?.jobGroupId && store.jobs.some((job) => job.id !== id && job.jobGroupId === previous.jobGroupId && job.workDate === input.workDate)) throw new JobError(409, "มีวันที่นี้อยู่ในกลุ่มแล้ว กรุณาเลือกวันอื่น");
   const job = buildJob(id, input, previous);
   if (Math.round(job.income * 100) < Math.round(job.paidAmount * 100)) throw new JobError(400, "รายรับต้องไม่น้อยกว่ายอดที่รับแล้ว กรุณาแก้ไขการชำระเงินก่อน");
   if (job.paymentStatus === "paid" && job.paidAmount < job.income) job.paymentStatus = job.paidAmount > 0 ? "partially_paid" : "waiting_for_payment";

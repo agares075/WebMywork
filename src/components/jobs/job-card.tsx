@@ -6,9 +6,9 @@ import { bangkokDate, paymentCountdown, sumMoney } from "@/lib/calculations";
 import { formatDay } from "@/lib/calendar";
 import type { Job } from "@/types/job";
 
-export function JobCard({ job, busy, onDelete, onSync, onPayment, showWorkDate = false }: { job: Job; busy: boolean; onDelete: () => void; onSync: () => void; onPayment: PaymentSave; showWorkDate?: boolean }) {
+export function JobCard({ job, busy, onDelete, onSync, onPayment, showWorkDate = false, groupBadge = "" }: { job: Job; busy: boolean; onDelete: () => void; onSync: () => void; onPayment: PaymentSave; showWorkDate?: boolean; groupBadge?: string }) {
   return <article className="job-card">
-    <div className="job-card-heading"><div><p className="job-time">{showWorkDate ? `${formatDay(job.workDate, { day: "numeric", month: "short", year: "numeric" })} · ` : ""}{job.startTime}–{job.endTime}</p><h3>{job.client}</h3></div><span className="money-income job-income">{formatMoney(job.income)}</span></div>
+    <div className="job-card-heading"><div><p className="job-time">{showWorkDate ? `${formatDay(job.workDate, { day: "numeric", month: "short", year: "numeric" })} · ` : ""}{job.startTime}–{job.endTime}</p><h3>{job.client}</h3>{groupBadge && <span className="job-group-badge">{groupBadge}</span>}</div><span className="money-income job-income">{formatMoney(job.income)}</span></div>
     {job.details && <p className="job-details">{job.details}</p>}
     {job.location && <a className="job-location text-link" href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(job.location)}`} target="_blank" rel="noopener noreferrer">{job.location}</a>}
     {job.expenses.length > 0 && <p className="job-expense money-expense">{t.jobs.expenses} {formatMoney(sumMoney(job.expenses.map((item) => item.amount)))}</p>}

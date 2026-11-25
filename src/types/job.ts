@@ -5,6 +5,8 @@ export type JobInput = z.infer<typeof jobInputSchema>;
 export type Expense = JobInput["expenses"][number];
 export type Job = Omit<JobInput, "baseUpdatedAt"> & {
   id: string;
+  jobGroupId: string;
+  paymentBaseDate: string;
   totalHours: number;
   expectedPaymentDate: string;
   paymentStatus: string;

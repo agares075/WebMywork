@@ -10,7 +10,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "test": "node --experimental-strip-types --test src/lib/critical.test.ts",
+    "test": "node --experimental-strip-types --test src/lib/critical.test.ts src/lib/jobs/multi-day.test.ts",
     "typecheck": "next typegen && tsc --noEmit",
     "check": "npm run lint && npm run typecheck && npm run build"
   },

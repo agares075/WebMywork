@@ -8,7 +8,10 @@ import { Brand } from "@/components/ui/brand";
 import { AuthButton } from "@/components/auth/auth-button";
 import { JobCard } from "@/components/jobs/job-card";
 import { useLiveJobs } from "@/components/jobs/use-live-jobs";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { DeleteJobDialog } from "@/components/jobs/delete-job-dialog";
+import { jobMutation } from "@/lib/jobs/mutation";
+import { groupDayLabel } from "@/lib/jobs/multi-day";
+import { mergeJobs } from "@/lib/offline/store";
 import { ReportFilterFields } from "./report-filters";
 import { IncomeChart } from "./income-chart";
 import { filterJobs, unpaidJobs, chartMonths, type ReportFilters } from "@/lib/reports/logic";
@@ -30,11 +33,11 @@ export function DashboardScreen({ initialJobs, initialMonth, spreadsheetUrl, ini
   const unpaid = unpaidJobs(selected);
   const points = chartMonths(filterJobs(live.jobs, { ...filters, month: "" }, today), filters.month || initialMonth);
   const csvUrl = `/api/export?${new URLSearchParams(filters)}`;
-  async function mutate(job: Job, action: "delete" | "sync") {
+  async function mutate(job: Job, action: "delete" | "sync", all = false) {
     setBusy(job.id); live.setError(""); setMessage("");
     try {
-      const data = await requestMutation({ url: `/api/jobs/${job.id}${action === "sync" ? "/sync" : ""}`, method: action === "sync" ? "POST" : "DELETE", entity: `job:${job.id}`, label: `${action === "delete" ? "ลบงาน" : "ซิงก์ปฏิทิน"}: ${job.client}`, ...(action === "delete" ? { json: { updatedAt: job.updatedAt } } : {}), optimistic: action === "delete" ? { deleted: true } : { job } });
-      live.setJobs((current) => data.deleted ? current.filter((value) => value.id !== job.id) : current.map((value) => value.id === job.id && data.job ? data.job : value));
+      const data = await requestMutation(jobMutation(job, action, live.jobs, all));
+      live.setJobs((current) => mergeJobs(current, data.deleted ? { ...data, deletedIds: data.deletedIds || [job.id] } : data));
       setMessage(data.warning || (data.deleted ? t.jobs.deleted : t.jobs.syncDone));
     } catch (reason) { live.setError(reason instanceof Error ? reason.message : t.jobs.saveFailed); }
     finally { setBusy(""); setDeleting(null); }
@@ -43,6 +46,6 @@ export function DashboardScreen({ initialJobs, initialMonth, spreadsheetUrl, ini
     {live.error && <div className="notice notice-error" role="alert">{live.error} <Link className="text-link" href="/settings">{t.jobs.settings}</Link></div>}{message && <div className="notice notice-feedback" role="status">{message}<button className="dismiss-notice" type="button" aria-label="ปิดข้อความ" onClick={() => setMessage("")}>×</button></div>}
     <ReportFilterFields filters={filters} onChange={setFilters} jobs={live.jobs.filter((job) => job.syncStatus !== "delete_pending")} currentMonth={initialMonth} />
     <p className="report-scope">{t.reports.scope}</p><div className="report-kpis" aria-live="polite">{(["income", "expenses", "net", "outstanding"] as const).map((key) => <section className="report-kpi" key={key}><h2>{t.reports[key]}</h2><strong className={key === "expenses" || (key === "net" && totals.net < 0) ? "money-expense" : "money-income"}>{formatMoney(totals[key])}</strong></section>)}</div><p className="report-freshness">{selected.length} {t.reports.results} · {live.checkedAt ? `${t.reports.lastChecked} ${formatDateTime(live.checkedAt)}` : t.reports.live}</p>
-    <div className="report-content"><section className="unpaid-report"><div className="report-section-heading"><h2>{t.reports.unpaidTitle}</h2><p>{t.reports.unpaidSort}</p></div>{unpaid.length ? unpaid.map((job) => <JobCard key={job.id} showWorkDate job={job} busy={Boolean(busy) || live.pendingPayment} onDelete={() => setDeleting(job)} onSync={() => void mutate(job, "sync")} onPayment={live.savePayment} />) : <p className="empty-state">{t.reports.unpaidEmpty}</p>}</section><IncomeChart points={points} /></div>
-  </main>{deleting && <ConfirmDialog title={t.jobs.deleteTitle} description={`${deleting.client} · ${t.jobs.deleteDescription}`} confirmLabel={t.jobs.deleteConfirm} busy={Boolean(busy)} onClose={() => setDeleting(null)} onConfirm={() => void mutate(deleting, "delete")} />}</div>;
+    <div className="report-content"><section className="unpaid-report"><div className="report-section-heading"><h2>{t.reports.unpaidTitle}</h2><p>{t.reports.unpaidSort}</p></div>{unpaid.length ? unpaid.map((job) => <JobCard key={job.id} showWorkDate job={job} groupBadge={groupDayLabel(job, live.jobs)} busy={Boolean(busy) || live.pendingPayment} onDelete={() => setDeleting(job)} onSync={() => void mutate(job, "sync")} onPayment={live.savePayment} />) : <p className="empty-state">{t.reports.unpaidEmpty}</p>}</section><IncomeChart points={points} /></div>
+  </main>{deleting && <DeleteJobDialog job={deleting} jobs={live.jobs} busy={Boolean(busy)} onClose={() => setDeleting(null)} onConfirm={(all) => void mutate(deleting, "delete", all)} />}</div>;
 }

@@ -10,7 +10,7 @@ export class RequestError extends Error {
 }
 async function send(entry: QueuedRequest): Promise<MutationData> {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 45000);
+  const timer = setTimeout(() => controller.abort(), entry.url.includes("/groups/") ? 125000 : 45000);
   try {
     let body: BodyInit | undefined;
     if (entry.form && entry.blobKey) {
@@ -61,7 +61,7 @@ export async function mutateRequest(account: string, input: MutationRequest): Pr
 async function replay(account: string, entry: QueuedRequest): Promise<MutationData> {
   try { return await send(entry); }
   catch (error) {
-    if (!(error instanceof RequestError) || error.status !== 409 || !entry.base || !entry.json || !["PUT", "PATCH"].includes(entry.method) || entry.form) throw error;
+    if (entry.url.includes("/groups/") || !(error instanceof RequestError) || error.status !== 409 || !entry.base || !entry.json || !["PUT", "PATCH"].includes(entry.method) || entry.form) throw error;
     const isContact = entry.entity.startsWith("contact:");
     const response = await fetch(isContact ? "/api/contacts" : "/api/jobs", { cache: "no-store" });
     if (!response.ok) throw error;

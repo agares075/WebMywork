@@ -13,5 +13,5 @@ export default async function EditJobPage({ params }: { params: Promise<{ id: st
   const contacts = await contactHistory(store.jobs);
   const job = store.jobs.find((value) => value.id === id);
   if (!job || job.syncStatus === "delete_pending") notFound();
-  return <main className="job-form-page"><JobForm id={id} initialJob={job} initial={jobToInput(job)} clients={[...new Set(store.jobs.map((value) => value.client))].sort()} contacts={contacts} email={session.user?.email ?? ""} editing /></main>;
+  return <main className="job-form-page"><JobForm id={id} initialJob={job} groupJobs={job.jobGroupId ? store.jobs.filter((value) => value.jobGroupId === job.jobGroupId) : []} initial={jobToInput(job)} clients={[...new Set(store.jobs.map((value) => value.client))].sort()} contacts={contacts} email={session.user?.email ?? ""} /></main>;
 }

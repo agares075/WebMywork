@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAppRuntime, useErrorToast } from "@/components/ui/app-runtime";
-import { mutationEvent, overlayJobs, queuedRequests } from "@/lib/offline/store";
+import { mergeJobs, mutationEvent, overlayJobs, queuedRequests } from "@/lib/offline/store";
 import type { MutationEvent } from "@/types/offline";
 import { effectivePaymentStatus } from "@/lib/payments/logic";
 import { bangkokDate } from "@/lib/calculations";
@@ -70,8 +70,7 @@ export function useLiveJobs(initialJobs: Job[], paused = false, initialError = "
     const changed = (event: Event) => {
       const detail = (event as CustomEvent<MutationEvent>).detail;
       if (detail.account !== account) return;
-      if (detail.data.job) setJobs((current) => current.some((job) => job.id === detail.data.job!.id) ? current.map((job) => job.id === detail.data.job!.id ? detail.data.job! : job) : [...current, detail.data.job!]);
-      else if (detail.data.deleted && detail.entry.entity.startsWith("job:")) setJobs((current) => current.filter((job) => `job:${job.id}` !== detail.entry.entity));
+      setJobs((current) => mergeJobs(current, detail.data.deleted && detail.entry.entity.startsWith("job:") ? { ...detail.data, deletedIds: [detail.entry.entity.slice(4)] } : detail.data));
     };
     const frame = requestAnimationFrame(() => { const pending = queuedRequests(account); if (pending.length) setJobs((current) => overlayJobs(current, pending)); });
     window.addEventListener(mutationEvent, changed);

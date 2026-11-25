@@ -26,9 +26,9 @@ export function jobId(value: string) {
   if (!result.success) throw new JobError(400, t.jobs.invalid);
   return result.data;
 }
-export async function readBody(request: NextRequest) {
-  if (Number(request.headers.get("content-length")) > 64000) throw new JobError(413, t.jobs.invalid);
+export async function readBody(request: NextRequest, maxBytes = 64000) {
+  if (Number(request.headers.get("content-length")) > maxBytes) throw new JobError(413, t.jobs.invalid);
   const text = await request.text();
-  if (text.length > 64000) throw new JobError(413, t.jobs.invalid);
+  if (text.length > maxBytes) throw new JobError(413, t.jobs.invalid);
   try { return JSON.parse(text) as unknown; } catch { throw new JobError(400, t.jobs.invalid); }
 }
